@@ -1,0 +1,38 @@
+spring:
+  main:
+    banner-mode: off
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    username: miner_schedule
+    password: 1
+    url: jdbc:postgresql://localhost:5432/miner_schedule
+  sql:
+    init:
+      mode: always
+  quartz:
+    jdbc:
+      initialize-schema: embedded
+    job-store-type: jdbc
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceId: AUTO #Используев AUTO, для того, чтобы каждый новый инстанс Scheduler`a имел уникальное название.
+          jobStore:
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate #Указываем диалект для запросов к БД
+            useProperties: false #Указываем, что все данные в БД будут храниться в качестве строк, а не в двоичном формате
+            tablePrefix: QRTZ_  #Префикс таблиц в БД
+            isClustered: false #Включаем режим работы в кластере
+#            clusterCheckinInterval: 5000 #Указываем частоту сверки инстанса Scheduler с остальными инстансами в кластере
+          threadPool: #Указываем настройки для создания пула поток, на котором будут выполняться джобы
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 10
+            threadsInheritContextClassLoaderOfInitializingThread: true
+        auto-startup: true #Выключаем автоматический старт для scheduler,
+
+
+
+logging:
+  level.jdbc: OFF
+
