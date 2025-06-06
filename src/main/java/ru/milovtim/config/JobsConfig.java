@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.milovtim.service.MinerModeChange;
 
 import java.util.Map;
+import java.util.TimeZone;
 
 
 @Configuration
@@ -44,7 +45,8 @@ public class JobsConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(normalModeJobDetail())
                 .withIdentity("everyDayNightTrigger", "PERMANENT")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 50 22 ? * *"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 50 22 ? * *")
+                        .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
                 .build();
     }
 
@@ -53,7 +55,8 @@ public class JobsConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(sleepModeJobDetail())
                 .withIdentity("everyDayMorningTrigger", "PERMANENT")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 59 6 ? * *"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 59 6 ? * *")
+                        .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
                 .build();
     }
 }
