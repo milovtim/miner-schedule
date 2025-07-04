@@ -14,12 +14,31 @@ import java.util.TimeZone;
 public class JobsConfig {
 
     @Bean
-    JobDetail normalModeJobDetail() {
+    JobDetail asic1NormalModeJobDetail() {
+        return createJobSetNormalMode("asic1", "NORMAL");
+    }
+
+    @Bean
+    JobDetail asic2NormalModeJobDetail() {
+        return createJobSetNormalMode("asic2", "NORMAL");
+    }
+
+    @Bean
+    JobDetail asic1SleepModeJobDetail() {
+        return createJobSetNormalMode("asic1", "SLEEP");
+    }
+
+    @Bean
+    JobDetail asic2SleepModeJobDetail() {
+        return createJobSetNormalMode("asic2", "SLEEP");
+    }
+
+    private static JobDetail createJobSetNormalMode(String asicAlias, String targetMode) {
         return JobBuilder.newJob(MinerModeChange.class)
-                .withIdentity("modeNormal", "PERMANENT")
+                .withIdentity("mode_" + targetMode, "PERMANENT")
                 .setJobData(JobDataMapSupport.newJobDataMap(Map.of(
-                        "minerAlias", "asic2",
-                        "minerMode", "NORMAL"
+                        "minerAlias", asicAlias,
+                        "minerMode", targetMode
                 )))
                 .storeDurably()
                 .requestRecovery()
@@ -28,22 +47,30 @@ public class JobsConfig {
 
 
     @Bean
-    JobDetail sleepModeJobDetail() {
-        return JobBuilder.newJob(MinerModeChange.class)
-                .withIdentity("modeSleep", "PERMANENT")
-                .setJobData(JobDataMapSupport.newJobDataMap(Map.of(
-                        "minerAlias", "asic2",
-                        "minerMode", "SLEEP"
-                )))
-                .storeDurably()
-                .requestRecovery()
-                .build();
-    }
-
-    @Bean
-    Trigger nightExec() {
+    Trigger asic1NightExec() {
         return TriggerBuilder.newTrigger()
-                .forJob(normalModeJobDetail())
+                .forJob(asic1NormalModeJobDetail())
+                .withIdentity("everyDayNightTrigger", "PERMANENT")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 59 22 ? * *")
+                        .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
+                .build();
+    }
+
+    @Bean
+    Trigger asic1MorningExec() {
+        return TriggerBuilder.newTrigger()
+                .forJob(asic1NormalModeJobDetail())
+                .withIdentity("everyDayMorningTrigger", "PERMANENT")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 7 ? * *")
+                        .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
+                .build();
+    }
+
+
+    @Bean
+    Trigger asic2NightExec() {
+        return TriggerBuilder.newTrigger()
+                .forJob(asic2NormalModeJobDetail())
                 .withIdentity("everyDayNightTrigger", "PERMANENT")
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 50 22 ? * *")
                         .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
@@ -51,9 +78,9 @@ public class JobsConfig {
     }
 
     @Bean
-    Trigger morningExec() {
+    Trigger asic2MorningExec() {
         return TriggerBuilder.newTrigger()
-                .forJob(sleepModeJobDetail())
+                .forJob(asic2NormalModeJobDetail())
                 .withIdentity("everyDayMorningTrigger", "PERMANENT")
                 .withSchedule(CronScheduleBuilder.cronSchedule("0 59 6 ? * *")
                         .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
