@@ -1,19 +1,14 @@
 services:
-  db:
-    container_name: miner-schedule-db
-    image: postgres:17.2
-    restart: always
-    # set shared memory limit when using docker-compose
-    shm_size: 128mb
-    environment:
-      POSTGRES_USER: miner_schedule
-      POSTGRES_PASSWORD: ${PG_PASSWORD}
-    volumes:
-      - ${PG_DATA_HOST_PATH}:/var/lib/postgresql/data
+  firefox:
+    image: selenium/standalone-firefox:128.0-20250717
+    shm_size: 2gb
     ports:
-      - "5432:5432"
+      - "4444:4444"
+      - "7900:7900"
+
   app:
     build:
       context: .
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/miner_schedule
+      SPRING_PROFILES_ACTIVE: hsql
+      SPRING_DATASOURCE_URL: jdbc:hsqldb:file:/app/miner-db/miner_schedule
