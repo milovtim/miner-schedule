@@ -1,12 +1,14 @@
 package ru.milovtim.service;
 
 import lombok.RequiredArgsConstructor;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -14,13 +16,16 @@ import ru.milovtim.domain.MinerModeChange;
 import ru.milovtim.domain.MinerModeChange.MinerMode;
 import ru.milovtim.repo.MinerItemRepo;
 
+import java.net.URL;
 import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
 public class SeleniumService {
-    
+
     private final MinerItemRepo minerItemRepo;
+    @Value("${selenium.driver.remote}")
+    private URL remote;
 
     public void changeAsicByAlias(String alias, MinerMode mode) {
         minerItemRepo.findByAlias(alias)
@@ -34,7 +39,7 @@ public class SeleniumService {
         String address = minerChange.getAddress();
         MinerMode targetMode = minerChange.getMode();
 
-        WebDriver driver = initFFDriver();
+        WebDriver driver = initDriver();
         UriComponents minerAddr = UriComponentsBuilder.newInstance()
                 .scheme("http")
                 .host("%s:%s@".formatted(login, password) + address)
@@ -58,11 +63,11 @@ public class SeleniumService {
         driver.quit();
     }
 
-    private static WebDriver initFFDriver() {
-        FirefoxOptions opts = new FirefoxOptions();
-        opts.addArguments("-headless");
-        opts.setImplicitWaitTimeout(Duration.ofSeconds(20));
-        return new FirefoxDriver(opts);
+
+    private WebDriver initDriver() {
+        DesiredCapabilities opts = new DesiredCapabilities();
+        opts.setBrowserName("chrome");
+        return this.remote != null ? new RemoteWebDriver(this.remote, opts): new ChromeDriver();
     }
 
     private static Select getModeSelect(WebDriver d) {

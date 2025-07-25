@@ -36,3 +36,7 @@ spring:
 logging:
   level.jdbc: OFF
 
+selenium:
+  driver:
+    remote: http://localhost:4444
+#    remote: firefox:4444
