@@ -59,7 +59,7 @@ public class JobsConfig {
         return TriggerBuilder.newTrigger()
                 .forJob("asic1_mode_NORMAL", PERMANENT_GROUP)
                 .withIdentity("asic1NightTrigger", PERMANENT_GROUP)
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 59 22 ? * *")
+                .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(22, 50)
                         .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
                 .build();
     }
@@ -69,7 +69,7 @@ public class JobsConfig {
         return TriggerBuilder.newTrigger()
                 .forJob("asic1_mode_SLEEP", PERMANENT_GROUP)
                 .withIdentity("asic1MorningTrigger", PERMANENT_GROUP)
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 7 ? * *")
+                .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(7, 0)
                         .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
                 .build();
     }
@@ -80,7 +80,7 @@ public class JobsConfig {
         return TriggerBuilder.newTrigger()
                 .forJob("asic2_mode_NORMAL", PERMANENT_GROUP)
                 .withIdentity("asic2NightTrigger", PERMANENT_GROUP)
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 50 22 ? * *")
+                .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(23, 0)
                         .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
                 .build();
     }
@@ -90,7 +90,7 @@ public class JobsConfig {
         return TriggerBuilder.newTrigger()
                 .forJob("asic2_mode_SLEEP", PERMANENT_GROUP)
                 .withIdentity("asic2MorningTrigger", PERMANENT_GROUP)
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 59 6 ? * *")
+                .withSchedule(CronScheduleBuilder.dailyAtHourAndMinute(7, 1)
                         .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
                 .build();
     }

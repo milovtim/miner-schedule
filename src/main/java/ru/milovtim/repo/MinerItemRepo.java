@@ -14,7 +14,7 @@ import java.util.UUID;
 public class MinerItemRepo {
     private static final RowMapper<MinerItem> ROW_MAPPER = (rs, rowNum) ->
             new MinerItem()
-//                    .id(((UUID) rs.getObject("id")))
+                    .id(((UUID) rs.getObject("id")))
                     .alias(rs.getString("alias"))
                     .ipAddr(rs.getString("ip_addr"))
                     .login(rs.getString("miner_login"))
@@ -27,7 +27,7 @@ public class MinerItemRepo {
     }
 
     public Optional<MinerItem> findByAlias(String alias) {
-        MinerItem minerItem = jdbcTemplate.queryForObject("SELECT * FROM \"miner_items\" mi WHERE mi.\"alias\" = ?",
+        MinerItem minerItem = jdbcTemplate.queryForObject("SELECT * FROM \"miner_items\" mi WHERE mi.alias = ?",
                 ROW_MAPPER, new SqlParameterValue(Types.VARCHAR, alias));
         return Optional.ofNullable(minerItem);
     }
