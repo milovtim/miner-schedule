@@ -1,10 +1,16 @@
 package ru.milovtim.service;
 
+import com.google.common.net.HttpHeaders;
 import lombok.RequiredArgsConstructor;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.devtools.DevTools;
+import org.openqa.selenium.devtools.HasDevTools;
+import org.openqa.selenium.devtools.v137.network.Network;
+import org.openqa.selenium.devtools.v137.network.model.Headers;
+import org.openqa.selenium.remote.Augmenter;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -18,6 +24,10 @@ import ru.milovtim.repo.MinerItemRepo;
 
 import java.net.URL;
 import java.time.Duration;
+import java.util.Base64;
+import java.util.Map;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Service
 @RequiredArgsConstructor
@@ -40,34 +50,46 @@ public class SeleniumService {
         MinerMode targetMode = minerChange.getMode();
 
         WebDriver driver = initDriver();
-        UriComponents minerAddr = UriComponentsBuilder.newInstance()
-                .scheme("http")
-                .host("%s:%s@".formatted(login, password) + address)
-                .pathSegment("#miner")
-                .build();
-        String uriString = minerAddr.toUriString();
-        driver.get(uriString);
+        try {
+            basicAuth(driver, login, password);
+            UriComponents minerAddr = UriComponentsBuilder.newInstance()
+                    .scheme("http")
+                    .host(address)
+                    .pathSegment("#miner")
+                    .build();
+            String uriString = minerAddr.toUriString();
+            driver.get(uriString);
 
-        new WebDriverWait(driver, Duration.ofSeconds(5))
-                .until(d -> getModeSelect(d).getOptions().size() >= 3);
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(d -> getModeSelect(d).getOptions().size() >= 3);
 
-        Select modeSelect = getModeSelect(driver);
-        String currentMode = modeSelect.getFirstSelectedOption().getAttribute("value");
+            Select modeSelect = getModeSelect(driver);
+            String currentMode = modeSelect.getFirstSelectedOption().getAttribute("value");
 
-        if (!targetMode.getCode().equals(currentMode)) {
-            modeSelect.selectByValue(targetMode.getCode());
-            driver.findElement(By.xpath("/html/body/div[2]/div[2]/div/div/div/div/div/div/input"))
-                    .click();
+            if (!targetMode.getCode().equals(currentMode)) {
+                modeSelect.selectByValue(targetMode.getCode());
+                driver.findElement(By.xpath("/html/body/div[2]/div[2]/div/div/div/div/div/div/input"))
+                        .click();
+            }
+        } finally {
+            driver.quit();
         }
+    }
 
-        driver.quit();
+    private static void basicAuth(WebDriver driver, String login, String password) {
+        driver = new Augmenter().augment(driver);
+        if (driver instanceof HasDevTools) {
+            DevTools devTools = ((HasDevTools) driver).getDevTools();
+            devTools.createSession();
+            String logPassB64 = Base64.getEncoder().encodeToString("%s:%s".formatted(login, password).getBytes(UTF_8));
+            devTools.send(Network.setExtraHTTPHeaders(new Headers(Map.of(HttpHeaders.AUTHORIZATION, "Basic " + logPassB64))));
+        }
     }
 
 
     private WebDriver initDriver() {
-        DesiredCapabilities opts = new DesiredCapabilities();
-        opts.setBrowserName("chrome");
-        return this.remote != null ? new RemoteWebDriver(this.remote, opts): new ChromeDriver();
+        ChromeOptions chromeOptions = new ChromeOptions();
+        return this.remote != null ? new RemoteWebDriver(this.remote, chromeOptions): new ChromeDriver();
     }
 
     private static Select getModeSelect(WebDriver d) {
