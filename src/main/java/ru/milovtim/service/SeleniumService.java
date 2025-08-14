@@ -1,15 +1,12 @@
 package ru.milovtim.service;
 
-import com.google.common.net.HttpHeaders;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
+import org.openqa.selenium.HasAuthentication;
+import org.openqa.selenium.UsernameAndPassword;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.HasDevTools;
-import org.openqa.selenium.devtools.v137.network.Network;
-import org.openqa.selenium.devtools.v137.network.model.Headers;
 import org.openqa.selenium.remote.Augmenter;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.Select;
@@ -24,10 +21,6 @@ import ru.milovtim.repo.MinerItemRepo;
 
 import java.net.URL;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.Map;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Service
 @RequiredArgsConstructor
@@ -78,11 +71,8 @@ public class SeleniumService {
 
     private static void basicAuth(WebDriver driver, String login, String password) {
         driver = new Augmenter().augment(driver);
-        if (driver instanceof HasDevTools) {
-            DevTools devTools = ((HasDevTools) driver).getDevTools();
-            devTools.createSession();
-            String logPassB64 = Base64.getEncoder().encodeToString("%s:%s".formatted(login, password).getBytes(UTF_8));
-            devTools.send(Network.setExtraHTTPHeaders(new Headers(Map.of(HttpHeaders.AUTHORIZATION, "Basic " + logPassB64))));
+        if (driver instanceof HasAuthentication) {
+            ((HasAuthentication) driver).register(UsernameAndPassword.of(login, password));
         }
     }
 
