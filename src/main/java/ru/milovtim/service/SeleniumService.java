@@ -1,7 +1,7 @@
 package ru.milovtim.service;
 
 import lombok.RequiredArgsConstructor;
-import org.openqa.selenium.By;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.HasAuthentication;
 import org.openqa.selenium.UsernameAndPassword;
 import org.openqa.selenium.WebDriver;
@@ -9,19 +9,21 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.Augmenter;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.milovtim.domain.MinerModeChange;
-import ru.milovtim.domain.MinerModeChange.MinerMode;
+import ru.milovtim.domain.MinerItem;
+import ru.milovtim.domain.MinerModeAction;
+import ru.milovtim.domain.MinerModeAction.MinerMode;
+import ru.milovtim.domain.MinerRestartAction;
 import ru.milovtim.repo.MinerItemRepo;
 
 import java.net.URL;
-import java.time.Duration;
+import java.util.function.Consumer;
 
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SeleniumService {
@@ -30,19 +32,26 @@ public class SeleniumService {
     @Value("${selenium.driver.remote}")
     private URL remote;
 
-    public void changeAsicByAlias(String alias, MinerMode mode) {
-        minerItemRepo.findByAlias(alias)
-                .map(minerItem -> new MinerModeChange(minerItem, mode))
-                .ifPresent(this::runScenario);
+    public void restartAsicByAlias(String alias) {
+        applyActionByAlias(alias, new MinerRestartAction());
     }
-    
-    public void runScenario(MinerModeChange minerChange) {
-        String login = minerChange.getLogin();
-        String password = minerChange.getPassword();
-        String address = minerChange.getAddress();
-        MinerMode targetMode = minerChange.getMode();
 
-        WebDriver driver = initDriver();
+    public void changeAsicModeByAlias(String alias, MinerMode mode) {
+        applyActionByAlias(alias, new MinerModeAction(mode));
+    }
+
+    private void applyActionByAlias(String alias, Consumer<WebDriver> action) {
+        minerItemRepo.findByAlias(alias)
+                .ifPresent(mi -> runScenario(mi, action));
+    }
+
+    private void runScenario(MinerItem minerItem, Consumer<WebDriver> minerAction) {
+        String login = minerItem.login();
+        String password = minerItem.password();
+        String address = minerItem.ipAddr();
+        log.info("[Asic: {}] Run scenario: {}", minerItem.alias(), minerAction);
+        ChromeOptions chromeOptions = new ChromeOptions();
+        WebDriver driver = this.remote != null ? new RemoteWebDriver(this.remote, chromeOptions) : new ChromeDriver();
         try {
             basicAuth(driver, login, password);
             UriComponents minerAddr = UriComponentsBuilder.newInstance()
@@ -53,17 +62,7 @@ public class SeleniumService {
             String uriString = minerAddr.toUriString();
             driver.get(uriString);
 
-            new WebDriverWait(driver, Duration.ofSeconds(5))
-                    .until(d -> getModeSelect(d).getOptions().size() >= 3);
-
-            Select modeSelect = getModeSelect(driver);
-            String currentMode = modeSelect.getFirstSelectedOption().getAttribute("value");
-
-            if (!targetMode.getCode().equals(currentMode)) {
-                modeSelect.selectByValue(targetMode.getCode());
-                driver.findElement(By.xpath("/html/body/div[2]/div[2]/div/div/div/div/div/div/input"))
-                        .click();
-            }
+            minerAction.accept(driver);
         } finally {
             driver.quit();
         }
@@ -74,15 +73,5 @@ public class SeleniumService {
         if (driver instanceof HasAuthentication) {
             ((HasAuthentication) driver).register(UsernameAndPassword.of(login, password));
         }
-    }
-
-
-    private WebDriver initDriver() {
-        ChromeOptions chromeOptions = new ChromeOptions();
-        return this.remote != null ? new RemoteWebDriver(this.remote, chromeOptions): new ChromeDriver();
-    }
-
-    private static Select getModeSelect(WebDriver d) {
-        return new Select(d.findElement(By.id("protoSelect")));
     }
 }

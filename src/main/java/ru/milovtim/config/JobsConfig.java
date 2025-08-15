@@ -4,14 +4,15 @@ import org.quartz.*;
 import org.quartz.core.jmx.JobDataMapSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.milovtim.domain.MinerModeChange.MinerMode;
-import ru.milovtim.service.MinerModeChange;
+import ru.milovtim.domain.MinerModeAction.MinerMode;
+import ru.milovtim.service.job.MinerModeJob;
+import ru.milovtim.service.job.MinerRestartJob;
 
 import java.util.Map;
 import java.util.TimeZone;
 
-import static ru.milovtim.domain.MinerModeChange.MinerMode.NORMAL;
-import static ru.milovtim.domain.MinerModeChange.MinerMode.SLEEP;
+import static ru.milovtim.domain.MinerModeAction.MinerMode.NORMAL;
+import static ru.milovtim.domain.MinerModeAction.MinerMode.SLEEP;
 
 
 @Configuration
@@ -19,28 +20,38 @@ public class JobsConfig {
 
     public static final String PERMANENT_GROUP = "PERMANENT";
 
+
+    @Bean
+    JobDetail asic1RestartJobDetail() {
+        return JobBuilder.newJob(MinerRestartJob.class)
+                .withIdentity("asic1_restart", PERMANENT_GROUP)
+                .setJobData(JobDataMapSupport.newJobDataMap(Map.of("minerAlias", "asic1")))
+                .storeDurably()
+                .build();
+    }
+
     @Bean
     JobDetail asic1NormalModeJobDetail() {
-        return createJobSetNormalMode("asic1", NORMAL);
+        return createJobSetMode("asic1", NORMAL);
     }
 
     @Bean
     JobDetail asic1SleepModeJobDetail() {
-        return createJobSetNormalMode("asic1", SLEEP);
+        return createJobSetMode("asic1", SLEEP);
     }
 
     @Bean
     JobDetail asic2NormalModeJobDetail() {
-        return createJobSetNormalMode("asic2", NORMAL);
+        return createJobSetMode("asic2", NORMAL);
     }
 
     @Bean
     JobDetail asic2SleepModeJobDetail() {
-        return createJobSetNormalMode("asic2", SLEEP);
+        return createJobSetMode("asic2", SLEEP);
     }
 
-    private static JobDetail createJobSetNormalMode(String asicAlias, MinerMode targetMode) {
-        return JobBuilder.newJob(MinerModeChange.class)
+    private static JobDetail createJobSetMode(String asicAlias, MinerMode targetMode) {
+        return JobBuilder.newJob(MinerModeJob.class)
                 .withIdentity(asicAlias + "_mode_" + targetMode.name(), PERMANENT_GROUP)
                 .setJobData(JobDataMapSupport.newJobDataMap(Map.of(
                         "minerAlias", asicAlias,

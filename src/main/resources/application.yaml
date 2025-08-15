@@ -12,31 +12,32 @@ spring:
       mode: always
   quartz:
     jdbc:
-      initialize-schema: embedded
+      initialize-schema: ${app.scheduler.jobStore.schema-init}
     job-store-type: jdbc
     properties:
+      # docs: https://github.com/quartz-scheduler/quartz/blob/main/docs/configuration.adoc
       org:
         quartz:
           scheduler:
-            instanceId: AUTO #Используев AUTO, для того, чтобы каждый новый инстанс Scheduler`a имел уникальное название.
+            instanceId: AUTO
           jobStore:
-            driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate #Указываем диалект для запросов к БД
-            useProperties: false #Указываем, что все данные в БД будут храниться в качестве строк, а не в двоичном формате
-            tablePrefix: QRTZ_  #Префикс таблиц в БД
-            isClustered: false #Включаем режим работы в кластере
-#            clusterCheckinInterval: 5000 #Указываем частоту сверки инстанса Scheduler с остальными инстансами в кластере
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.${app.scheduler.jobStore.driverDelegate} #Указываем диалект для запросов к БД
+            useProperties: true #Указываем, что все данные в БД будут храниться в качестве строк, а не в двоичном формате
           threadPool: #Указываем настройки для создания пула поток, на котором будут выполняться джобы
             class: org.quartz.simpl.SimpleThreadPool
-            threadCount: 10
+            threadCount: 2
             threadsInheritContextClassLoaderOfInitializingThread: true
-        auto-startup: true #Выключаем автоматический старт для scheduler,
+        auto-startup: ${app.scheduler.auto-start:true}
 
 
 
 logging:
-  level.jdbc: OFF
+  level:
+    root: INFO
+    org.quartz: INFO
+    jdbc: OFF
+    org.openqa.selenium.devtools: ERROR
 
 selenium:
   driver:
     remote: http://localhost:4444
-#    remote: firefox:4444

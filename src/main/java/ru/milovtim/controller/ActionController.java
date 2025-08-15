@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.milovtim.domain.MinerModeChange.MinerMode;
+import ru.milovtim.domain.MinerModeAction.MinerMode;
 import ru.milovtim.service.SeleniumService;
 
 @RestController
@@ -20,6 +20,6 @@ public class ActionController {
 
     @PostMapping("/mode")
     public void setMode(@RequestParam("mode") MinerMode minerMode) {
-        seleniumService.changeAsicByAlias("asic2", minerMode);
+        seleniumService.changeAsicModeByAlias("asic2", minerMode);
     }
 }

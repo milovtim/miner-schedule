@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.hsqldb.jdbc.JDBCDriver
+    username: miner_schedule
+    password: 1
+    url: jdbc:hsqldb:file:./miner-schedule-db/miner_schedule
+  sql:
+    init:
+      mode: always
+app:
+  scheduler:
+    auto-start: false
+    jobStore:
+      driverDelegate: HSQLDBDelegate
+      schema-init: never #never,always,embedded

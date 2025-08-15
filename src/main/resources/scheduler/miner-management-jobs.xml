@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job-scheduling-data xmlns="http://www.quartz-scheduler.org/xml/JobSchedulingData">
+    <schedule>
+        <job>
+            <name>asic1_mode_ACTIVE</name>
+            <group>PERMANENT_GROUP</group>
+            <job-class>ru.milovtim.service.MinerModeJob</job-class>
+            <durability>true</durability>
+            <recover>true</recover>
+            <job-data-map>
+                <entry>
+                    <key>minerAlias</key>
+                    <value>asic1</value>
+                </entry>
+                <entry>
+                    <key>minerMode</key>
+                    <value>ACTIVE</value>
+                </entry>
+            </job-data-map>
+        </job>
+
+    </schedule>
+</job-scheduling-data>
