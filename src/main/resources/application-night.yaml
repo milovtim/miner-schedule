@@ -1,0 +1,8 @@
+app:
+  workPeriods:
+    asic1:
+      start: '22:40:00'
+      stop: '07:00:00'
+    asic2:
+      start: '23:00:00'
+      stop: '07:01:00'
