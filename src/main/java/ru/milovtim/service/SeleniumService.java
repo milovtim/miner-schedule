@@ -42,7 +42,9 @@ public class SeleniumService {
 
     private void applyActionByAlias(String alias, Consumer<WebDriver> action) {
         minerItemRepo.findByAlias(alias)
-                .ifPresent(mi -> runScenario(mi, action));
+                .ifPresentOrElse(
+                        mi -> runScenario(mi, action),
+                        () -> log.warn("Cant run selenium action on {} because not found", alias));
     }
 
     private void runScenario(MinerItem minerItem, Consumer<WebDriver> minerAction) {
