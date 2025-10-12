@@ -19,7 +19,8 @@ public class ActionController {
     }
 
     @PostMapping("/mode")
-    public void setMode(@RequestParam("mode") MinerMode minerMode) {
-        seleniumService.changeAsicModeByAlias("asic2", minerMode);
+    public void setMode(@RequestParam("mode") MinerMode minerMode,
+                        @RequestParam("alias") String alias) {
+        seleniumService.changeAsicModeByAlias(alias, minerMode);
     }
 }

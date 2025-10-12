@@ -65,6 +65,8 @@ public class SeleniumService {
             driver.get(uriString);
 
             minerAction.accept(driver);
+        } catch (Exception e) {
+            log.error("Cant execute on web driver.", e);
         } finally {
             driver.quit();
         }
