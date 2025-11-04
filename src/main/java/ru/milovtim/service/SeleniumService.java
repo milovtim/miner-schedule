@@ -52,7 +52,8 @@ public class SeleniumService {
         String password = minerItem.password();
         String address = minerItem.ipAddr();
         log.info("[Asic: {}] Run scenario: {}", minerItem.alias(), minerAction);
-        ChromeOptions chromeOptions = new ChromeOptions();
+        ChromeOptions chromeOptions = new ChromeOptions()
+                .enableBiDi();
         WebDriver driver = this.remote != null ? new RemoteWebDriver(this.remote, chromeOptions) : new ChromeDriver();
         try {
             basicAuth(driver, login, password);
