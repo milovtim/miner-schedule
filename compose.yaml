@@ -1,14 +1,18 @@
 services:
-  firefox:
-    image: selenium/standalone-firefox:128.0-20250717
+  selenium-chromium:
+    image: selenium/standalone-chromium:latest
     shm_size: 2gb
     ports:
       - "4444:4444"
       - "7900:7900"
+    environment:
+      SE_OPTS: "--enable-cdp true"
+      SE_NODE_GRID_URL: http://192.168.1.35:4444/
 
   app:
     build:
       context: .
+    restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: hsql
+      SPRING_PROFILES_ACTIVE: hsql,night,rpi
       SPRING_DATASOURCE_URL: jdbc:hsqldb:file:/app/miner-db/miner_schedule
