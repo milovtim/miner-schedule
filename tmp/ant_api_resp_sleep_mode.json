@@ -1,0 +1,20 @@
+{
+  "STATUS": [
+    {
+      "STATUS": "S",
+      "When": 1763832908,
+      "Code": 70,
+      "Msg": "CGMiner stats",
+      "Description": "cgminer 1.0.0"
+    }
+  ],
+  "STATS": [
+    {
+      "BMMiner": "1.0.0",
+      "Miner": "",
+      "CompileTime": "Tue Apr  9 11:41:45 CST 2024",
+      "Type": "Antminer S19k Pro"
+    }
+  ],
+  "id": 1
+}
