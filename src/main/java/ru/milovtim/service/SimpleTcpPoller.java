@@ -1,5 +1,6 @@
 package ru.milovtim.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Service
@@ -22,14 +22,19 @@ import java.util.function.Function;
 public class SimpleTcpPoller {
     // Список хостов для опроса
     private final MinerItemRepo itemRepo;
+    private final ObjectMapper objectMapper;
 
-    public void pollHost() {
+    public Optional<String> pollHost() {
         Optional<MinerItem> byAlias = itemRepo.findByAlias("asic1");
 
-        byAlias.map(item -> item.ipAddr())
+        return byAlias.map(item -> item.ipAddr())
                 .map(ip -> new InetSocketAddress(ip, 4028))
                 .map(address -> sendCommand(address, this::handleCommand))
-                .ifPresent(log::info);
+                .map(msg -> {
+                            log.info(msg);
+                            return msg;
+                        }
+                );
     }
 
     private ThreadLocal<Integer> waitIfTimeout = ThreadLocal.withInitial(() -> 0);
@@ -60,7 +65,8 @@ public class SimpleTcpPoller {
         StringBuilder sb = new StringBuilder();
         try {
             PrintStream ps = new PrintStream(socket.getOutputStream());
-            String command = "stats";
+            //language=JSON
+            String command = "{\"command\": \"stats\"}";
             ps.print(command.toLowerCase().toCharArray());
             ps.flush();
 

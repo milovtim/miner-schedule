@@ -3,13 +3,12 @@ package ru.milovtim.config;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.quartz.core.jmx.JobDataMapSupport;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.milovtim.config.AppConfig.AsicWorkPeriod;
 import ru.milovtim.domain.MinerModeAction.MinerMode;
 import ru.milovtim.service.job.MinerModeJob;
 import ru.milovtim.service.job.MinerRestartJob;
+import ru.milovtim.service.job.MinerStatsJob;
 
 import java.util.Map;
 import java.util.TimeZone;
@@ -66,9 +65,27 @@ public class JobsConfig {
     }
 
 
+    @Bean
+    JobDetail asic1StatJobDetail() {
+        return JobBuilder.newJob(MinerStatsJob.class)
+                .storeDurably()
+                .withIdentity("asic1_stats", PERMANENT_GROUP)
+                .build();
+    }
+
+
     //-------------****************************************************
 
+    @Bean
+    Trigger pollStats() {
+        return TriggerBuilder.newTrigger()
+                .forJob("asic1_stats", PERMANENT_GROUP)
+                .withIdentity("asic1_stats_Trigger", PERMANENT_GROUP)
+                .withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(1))
+                .build();
+    }
 
+/*
     private AsicWorkPeriod asic1WorkPeriod;
 
     @Value("#{appConfig.workPeriods['asic1']}")
@@ -131,5 +148,6 @@ public class JobsConfig {
                         .inTimeZone(TimeZone.getTimeZone("Europe/Moscow")))
                 .build();
     }
+*/
 
 }
